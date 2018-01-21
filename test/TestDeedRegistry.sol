@@ -39,21 +39,21 @@ contract TestDeedRegistry
 			fakeHash()));
     }
 	
-	function changeRegistrar() public
+	function testChangeRegistrar() public
 	{
 		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
 		registry.addRegistrar(testChangeAddress);
 		assert(registry.isRegistrar(testChangeAddress));
 	}
 	
-	function removeRegistrar() public
+	function testRemoveRegistrar() public
 	{
 		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
 		registry.removeRegistrar(testChangeAddress);
 		assert(!registry.isRegistrar(testChangeAddress));
 	}
 	
-	function checkDeedExists() public
+	function testCheckDeedExists() public
 	{
 		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
 		assert(registry.deedExists(fakeHash()));

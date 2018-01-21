@@ -18,9 +18,9 @@ contract DeedRegistry
     }
     
     // Registrar management =========================================
-    function isRegistrar(address registrarAddress) public returns (bool)
+    function isRegistrar(address registrarAddress) public view returns (bool)
     {
-        return registrars[msg.sender];
+        return registrars[registrarAddress];
     }
 	
     function addRegistrar(address registrarAddress) public
