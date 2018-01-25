@@ -1,9 +1,12 @@
 pragma solidity ^0.4.16;
 
-contract DeedRegistry 
-{
-    struct Deed 
-    {
+contract DeedRegistry {
+
+    function DeedRegistry() public {
+        registrars[msg.sender] = true;
+    }
+
+    struct Deed {
         address owner;
         bytes32 identityHash;
         byte[256] fileChecksum;         	// checksum of the file this deed concerns
@@ -12,25 +15,18 @@ contract DeedRegistry
     mapping(bytes32 => Deed[]) registry;    // Sha3 hash of the larger hash
     mapping(address => bool) registrars;    // The authorised addresses for adding elements to the registry
     
-    function DeedRegistry() public
-    {
-        registrars[msg.sender] = true;
-    }
     
     // Registrar management =========================================
-    function isRegistrar(address registrarAddress) public view returns (bool)
-    {
+    function isRegistrar(address registrarAddress) public view returns (bool) {
         return registrars[registrarAddress];
     }
 	
-    function addRegistrar(address registrarAddress) public
-    {
+    function addRegistrar(address registrarAddress) public {
         require(registrars[msg.sender]);
         registrars[registrarAddress] = true;
     }
     
-    function removeRegistrar(address registrarAddress) public
-    {
+    function removeRegistrar(address registrarAddress) public {
         require(registrars[msg.sender]);
         delete registrars[registrarAddress];
     }
@@ -66,31 +62,24 @@ contract DeedRegistry
         return true;
     }
     
-    function deedExists(byte[256] fileChecksum) public view returns(bool)
-    {
+    function deedExists(byte[256] fileChecksum) public view returns(bool) {
         bytes32 fileHash = keccak256(fileChecksum);
         return duplicateHashExists(fileHash, fileChecksum);
     }
     
-    function duplicateHashExists(bytes32 hash, byte[256] fileChecksum) internal view returns (bool duplicateFound)
-    {
+    function duplicateHashExists(bytes32 hash, byte[256] fileChecksum) internal view returns (bool duplicateFound) {
         Deed[] storage bucket = registry[hash];
-        if(bucket.length > 0)
-        {
-            for(uint i = 0; i < bucket.length; ++i)
-            {
+        if ( bucket.length > 0) {
+            for (uint i = 0; i < bucket.length; ++i) {
                 duplicateFound = true;
                 Deed memory deed = bucket[i];
-                for(uint j = 0; j < 256; ++j)
-                {
-                    if(deed.fileChecksum[j] != fileChecksum[j])
-                    {
+                for (uint j = 0; j < 256; ++j) {
+                    if (deed.fileChecksum[j] != fileChecksum[j]) {
                         duplicateFound = false;
                         break;
                     }
                 }
-                if(duplicateFound)
-                {
+                if (duplicateFound) {
                     break;
                 }
             }
