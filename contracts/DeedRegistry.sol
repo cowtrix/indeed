@@ -1,4 +1,4 @@
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.18;
 
 contract DeedRegistry {
 
@@ -14,20 +14,23 @@ contract DeedRegistry {
     
     mapping(bytes32 => Deed[]) registry;    // Sha3 hash of the larger hash
     mapping(address => bool) registrars;    // The authorised addresses for adding elements to the registry
-    
-    
+
+    // Access Control =========================================
+    modifier onlyRegistrar {
+        require(registrars[msg.sender]);
+        _;
+    }
+
     // Registrar management =========================================
     function isRegistrar(address registrarAddress) public view returns (bool) {
         return registrars[registrarAddress];
     }
 	
-    function addRegistrar(address registrarAddress) public {
-        require(registrars[msg.sender]);
+    function addRegistrar(address registrarAddress) public onlyRegistrar {
         registrars[registrarAddress] = true;
     }
     
-    function removeRegistrar(address registrarAddress) public {
-        require(registrars[msg.sender]);
+    function removeRegistrar(address registrarAddress) public onlyRegistrar {
         delete registrars[registrarAddress];
     }
     
