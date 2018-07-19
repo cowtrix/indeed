@@ -68,7 +68,7 @@ contract DeedRegistry
     
     function searchForDeed(bytes32 identityHash, byte[256] fileChecksum) internal view returns (Deed result)
     {
-        Deed[] storage bucket = registry[identityHash];
+        Deed[] memory bucket = registry[identityHash];
         for(uint i = 0; i < bucket.length; ++i)
         {
             Deed memory deed = bucket[i];

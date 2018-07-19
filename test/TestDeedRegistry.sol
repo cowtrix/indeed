@@ -7,7 +7,6 @@ import "../contracts/DeedRegistry.sol";
 contract TestDeedRegistry 
 {
 	string constant ownerName = "Yuri Gagarin";
-	int64 constant ownerDOB = -1130241600;
 	string constant fileName = "HelloWorld.txt";
 	string constant fileDescription = "A hello world document.";
 	
@@ -27,23 +26,12 @@ contract TestDeedRegistry
 	function testAdd() public 
 	{
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		assert(registry.createDeed(
-			ownerName, 
-			ownerDOB, 
-			fileName,
-			fileDescription, 
-			fakeHash()) > 0);		
+		assert(registry.createDeed(ownerName, fileName,	fileDescription, fakeHash()) > 0);		
 	}
 	
 	function testCheckDeedExists() public view
 	{
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		assert(registry.proveDeed(
-			msg.sender,
-			ownerName, 
-			ownerDOB, 
-			fileName,
-			fileDescription, 
-			fakeHash()) > 0);
+		assert(registry.proveDeed(this, ownerName, fileName, fileDescription, fakeHash()) > 0);
 	}
 }

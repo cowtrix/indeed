@@ -16,7 +16,7 @@ contract('DeedRegistry', function(accounts)
 		return hash;
 	}
 
-  it("...should add a new deed.", function() {
+  /*it("...should add a new deed.", function() {
     return DeedRegistry.deployed().then(function(instance) {
       deedRegInstance = instance;
 
@@ -29,7 +29,7 @@ contract('DeedRegistry', function(accounts)
     })
 	});
 	
-	it("...should check that the new deed exists.", function() {
+	it("...should prove that the new deed exists.", function() {
     return DeedRegistry.deployed().then(function(instance) {
       deedRegInstance = instance;
 
@@ -41,6 +41,6 @@ contract('DeedRegistry', function(accounts)
 				fakeHash(), 
 				{from: accounts[0]}) > 0);
     })
-  });
+  });*/
 
 });
