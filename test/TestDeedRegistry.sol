@@ -8,54 +8,42 @@ contract TestDeedRegistry
 {
 	string constant ownerName = "Yuri Gagarin";
 	int64 constant ownerDOB = -1130241600;
-	string constant fileName = "HelloWorld.txt";	
-	uint constant fileSize = 12;
+	string constant fileName = "HelloWorld.txt";
 	string constant fileDescription = "A hello world document.";
 	
-	address testChangeAddress = 0xf17f52151EbEF6C7334FAD080c5704D77216b732;
-
 	function fakeHash() private pure returns (byte[256])
 	{
 		byte[256] memory fakeChecksum;
         for(uint i = 0; i < 256; ++i)
         {
-            if(i%0 ==0)
+            if(i%2 == 0)
             {
-                fakeChecksum[i] = 1;
+                fakeChecksum[i] = 255;
             }
         }
 		return fakeChecksum;
 	}
 
-    function testAdd() public 
-    {
-        var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-        assert(registry.createDeed(msg.sender, 
+	function testAdd() public 
+	{
+		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
+		assert(registry.createDeed(
 			ownerName, 
 			ownerDOB, 
-			fileName, 
-			fileSize, 
+			fileName,
 			fileDescription, 
-			fakeHash()));
-    }
-	
-	function testChangeRegistrar() public
-	{
-		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		registry.addRegistrar(testChangeAddress);
-		assert(registry.isRegistrar(testChangeAddress));
+			fakeHash()) > 0);		
 	}
 	
-	function testRemoveRegistrar() public
+	function testCheckDeedExists() public view
 	{
-		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		registry.removeRegistrar(testChangeAddress);
-		assert(!registry.isRegistrar(testChangeAddress));
-	}
-	
-	function testCheckDeedExists() public
-	{
-		var registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		assert(registry.deedExists(fakeHash()));
+		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
+		assert(registry.proveDeed(
+			msg.sender,
+			ownerName, 
+			ownerDOB, 
+			fileName,
+			fileDescription, 
+			fakeHash()) > 0);
 	}
 }

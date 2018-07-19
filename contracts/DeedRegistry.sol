@@ -7,94 +7,86 @@ contract DeedRegistry
         address owner;
         bytes32 identityHash;
         byte[256] fileChecksum;         	// checksum of the file this deed concerns
+        uint blockNumber;
     }
     
     mapping(bytes32 => Deed[]) registry;    // Sha3 hash of the larger hash
-    mapping(address => bool) registrars;    // The authorised addresses for adding elements to the registry
     
-    function DeedRegistry() public
+    constructor() public
     {
-        registrars[msg.sender] = true;
     }
-    
-    // Registrar management =========================================
-    function isRegistrar(address registrarAddress) public view returns (bool)
-    {
-        return registrars[registrarAddress];
-    }
-	
-    function addRegistrar(address registrarAddress) public
-    {
-        require(registrars[msg.sender]);
-        registrars[registrarAddress] = true;
-    }
-    
-    function removeRegistrar(address registrarAddress) public
-    {
-        require(registrars[msg.sender]);
-        delete registrars[registrarAddress];
-    }
-    
+
     // Deed management ==============================================
     
     // Create a new deed with the given fingerprint
     function createDeed(
-        address ownerAddress,
-        string ownerName, 
-        int64 ownerDOB,
+        string ownerName,
         string fileName,
-        uint filesize,
         string fileDescription,
-        byte[256] fileChecksum) external payable returns(bool)
+        byte[256] fileChecksum) external payable returns(uint)
     {
-        // Require that the caller is an approved registrar
-        require(registrars[msg.sender]);    
+        address ownerAddress = msg.sender;
         
         // Generate the bucket hash of the deed
-        bytes32 fileHash = keccak256(fileChecksum);
-        
+        bytes32 fileHash = keccak256(abi.encodePacked(fileChecksum));
+                
+        // Now we create an identity hash. The owner of the deed then should be able to reconstruct this hash with the same details
+        bytes32 identityHash = generateIdentityHash(ownerAddress, ownerName, fileName, fileDescription, fileHash);
+
         // Check for any duplicates in the mapping
-        require(!duplicateHashExists(fileHash, fileChecksum));
+        require(searchForDeed(identityHash, fileChecksum).blockNumber == 0);
         
-        // Now we create an block number dependent identity hash. The owner of the deed then should be able to reconstruct
-        // the hash data from the contract call
-        bytes32 identityHash = keccak256(ownerAddress, ownerName, ownerDOB, fileName, filesize, fileDescription, fileHash, block.number);
+        Deed memory newDeed = Deed(ownerAddress, identityHash, fileChecksum, block.number);
+        registry[identityHash].push(newDeed);
         
-        Deed memory newDeed = Deed(ownerAddress, identityHash, fileChecksum);
-        registry[fileHash].push(newDeed);
-        
-        return true;
+        return newDeed.blockNumber;
+    }
+
+    function generateIdentityHash(
+        address ownerAddress,
+        string ownerName,
+        string fileName,
+        string fileDescription,
+        bytes32 fileHash) internal pure returns (bytes32)
+    {
+        return keccak256(
+            abi.encodePacked(ownerAddress, ownerName, fileName, fileDescription, fileHash)
+        );
     }
     
-    function deedExists(byte[256] fileChecksum) public view returns(bool)
+    function proveDeed(
+        address ownerAddress,
+        string ownerName,
+        string fileName,
+        string fileDescription,
+        byte[256] fileChecksum) public view returns(uint)
     {
-        bytes32 fileHash = keccak256(fileChecksum);
-        return duplicateHashExists(fileHash, fileChecksum);
+        bytes32 fileHash = keccak256(abi.encodePacked(fileChecksum));
+        bytes32 identityHash = generateIdentityHash(ownerAddress, ownerName, fileName, fileDescription, fileHash);
+        return searchForDeed(identityHash, fileChecksum).blockNumber;
     }
     
-    function duplicateHashExists(bytes32 hash, byte[256] fileChecksum) internal view returns (bool duplicateFound)
+    function searchForDeed(bytes32 identityHash, byte[256] fileChecksum) internal view returns (Deed result)
     {
-        Deed[] storage bucket = registry[hash];
-        if(bucket.length > 0)
+        Deed[] storage bucket = registry[identityHash];
+        for(uint i = 0; i < bucket.length; ++i)
         {
-            for(uint i = 0; i < bucket.length; ++i)
+            Deed memory deed = bucket[i];
+            bool matchFound = true;
+            for(uint j = 0; j < 256; ++j)
             {
-                duplicateFound = true;
-                Deed memory deed = bucket[i];
-                for(uint j = 0; j < 256; ++j)
+                if(deed.fileChecksum[j] != fileChecksum[j])
                 {
-                    if(deed.fileChecksum[j] != fileChecksum[j])
-                    {
-                        duplicateFound = false;
-                        break;
-                    }
-                }
-                if(duplicateFound)
-                {
+                    matchFound = false;
                     break;
                 }
             }
+            if(matchFound)
+            {
+                result = deed;
+                break;
+            }
         }
-        return duplicateFound;
+        return result;
     }
 }
