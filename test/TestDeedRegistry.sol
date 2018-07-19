@@ -28,8 +28,14 @@ contract TestDeedRegistry
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
 		assert(registry.createDeed(ownerName, fileName,	fileDescription, fakeHash()) > 0);		
 	}
+
+	function testAddDuplicate() public 
+	{
+		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
+		assert(registry.createDeed(ownerName, fileName,	fileDescription, fakeHash()) == 0);		
+	}
 	
-	function testCheckDeedExists() public view
+	function testCheckDeedExists() public
 	{
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
 		assert(registry.proveDeed(this, ownerName, fileName, fileDescription, fakeHash()) > 0);

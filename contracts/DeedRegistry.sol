@@ -11,6 +11,10 @@ contract DeedRegistry
     }
     
     mapping(bytes32 => Deed[]) registry;    // Sha3 hash of the larger hash
+
+    event DeedCreated(uint blockNumber);
+    event DeedDuplicateFound();
+    event DeedExists();
     
     constructor() public
     {
@@ -34,11 +38,15 @@ contract DeedRegistry
         bytes32 identityHash = generateIdentityHash(ownerAddress, ownerName, fileName, fileDescription, fileHash);
 
         // Check for any duplicates in the mapping
-        require(searchForDeed(identityHash, fileChecksum).blockNumber == 0);
+        if(searchForDeed(identityHash, fileChecksum).blockNumber > 0)
+        {
+            emit DeedDuplicateFound();
+            return 0;
+        }
         
         Deed memory newDeed = Deed(ownerAddress, identityHash, fileChecksum, block.number);
         registry[identityHash].push(newDeed);
-        
+        emit DeedCreated(newDeed.blockNumber);
         return newDeed.blockNumber;
     }
 
@@ -66,16 +74,14 @@ contract DeedRegistry
         return searchForDeed(identityHash, fileChecksum).blockNumber;
     }
     
-    function searchForDeed(bytes32 identityHash, byte[256] fileChecksum) internal view returns (Deed result)
+    function searchForDeed(bytes32 identityHash, byte[256] fileChecksum) private view returns (Deed result)
     {
-        Deed[] memory bucket = registry[identityHash];
-        for(uint i = 0; i < bucket.length; ++i)
+        for(uint i = 0; i < registry[identityHash].length; ++i)
         {
-            Deed memory deed = bucket[i];
             bool matchFound = true;
             for(uint j = 0; j < 256; ++j)
             {
-                if(deed.fileChecksum[j] != fileChecksum[j])
+                if(registry[identityHash][i].fileChecksum[j] != fileChecksum[j])
                 {
                     matchFound = false;
                     break;
@@ -83,7 +89,7 @@ contract DeedRegistry
             }
             if(matchFound)
             {
-                result = deed;
+                result = registry[identityHash][i];
                 break;
             }
         }
