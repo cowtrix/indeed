@@ -6,7 +6,7 @@ contract DeedRegistry
     {
         address owner;
         bytes32 identityHash;
-        byte[256] fileChecksum;         	// checksum of the file this deed concerns
+        uint256 fileChecksum;         	// checksum of the file this deed concerns
         uint blockNumber;
     }
     
@@ -27,7 +27,7 @@ contract DeedRegistry
         string ownerName,
         string fileName,
         string fileDescription,
-        byte[256] fileChecksum) external payable returns(uint)
+        uint256 fileChecksum) external payable returns(uint)
     {
         address ownerAddress = msg.sender;
         
@@ -38,11 +38,12 @@ contract DeedRegistry
         bytes32 identityHash = generateIdentityHash(ownerAddress, ownerName, fileName, fileDescription, fileHash);
 
         // Check for any duplicates in the mapping
-        if(searchForDeed(identityHash, fileChecksum).blockNumber > 0)
+        /*if(searchForDeed(identityHash, fileChecksum).blockNumber > 0)
         {
             emit DeedDuplicateFound();
             return 0;
-        }
+        }*/
+        require(searchForDeed(identityHash, fileChecksum).blockNumber == 0);
         
         Deed memory newDeed = Deed(ownerAddress, identityHash, fileChecksum, block.number);
         registry[identityHash].push(newDeed);
@@ -67,32 +68,21 @@ contract DeedRegistry
         string ownerName,
         string fileName,
         string fileDescription,
-        byte[256] fileChecksum) public view returns(uint)
+        uint256 fileChecksum) public view returns(uint)
     {
         bytes32 fileHash = keccak256(abi.encodePacked(fileChecksum));
         bytes32 identityHash = generateIdentityHash(ownerAddress, ownerName, fileName, fileDescription, fileHash);
         return searchForDeed(identityHash, fileChecksum).blockNumber;
     }
     
-    function searchForDeed(bytes32 identityHash, byte[256] fileChecksum) private view returns (Deed result)
+    function searchForDeed(bytes32 identityHash, uint256 fileChecksum) private view returns (Deed result)
     {
         for(uint i = 0; i < registry[identityHash].length; ++i)
         {
-            bool matchFound = true;
-            for(uint j = 0; j < 256; ++j)
+            if(registry[identityHash][i].fileChecksum == fileChecksum)
             {
-                if(registry[identityHash][i].fileChecksum[j] != fileChecksum[j])
-                {
-                    matchFound = false;
-                    break;
-                }
-            }
-            if(matchFound)
-            {
-                result = registry[identityHash][i];
-                break;
+                return registry[identityHash][i];
             }
         }
-        return result;
     }
 }

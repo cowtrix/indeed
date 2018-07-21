@@ -6,41 +6,31 @@ contract('DeedRegistry', function(accounts)
 	var fileName = "HelloWorld.txt";
 	var fileDescription = "A hello world document.";
 
+	var blockNumber;
+
 	function fakeHash ()
 	{
-		var hash = new Uint8Array(256);
-		for(var i = 0; i < 256; ++i)
-		{
-			hash[i] = 127;
-		}
-		return hash;
+		return web3.toBigNumber('0xfc9e0eefe9f3a5101b7c025b217c03c95dbf9bb4f2d1d46db238e305af104103');
 	}
 
-  /*it("...should add a new deed.", function() {
+  it("...should add a new deed.", function() {
     return DeedRegistry.deployed().then(function(instance) {
       deedRegInstance = instance;
-
-      assert(deedRegInstance.createDeed(
-        ownerName,
-			  fileName,
-			  fileDescription, 
-				fakeHash(), 
-				{from: accounts[0]}) > 0);
-    })
+			blockNumber = deedRegInstance.createDeed(ownerName, fileName, fileDescription, fakeHash(), {from: accounts[0]});			
+		}).then()
+		{
+			assert(blockNumber > web3.toBigNumber(0), "Returned block number should be > 0");
+		}
 	});
 	
 	it("...should prove that the new deed exists.", function() {
     return DeedRegistry.deployed().then(function(instance) {
       deedRegInstance = instance;
-
-      assert(deedRegInstance.proveDeed(
-				accounts[0],
-        ownerName,
-			  fileName,
-			  fileDescription, 
-				fakeHash(), 
-				{from: accounts[0]}) > 0);
-    })
-  });*/
+			var checkBlockNumber = deedRegInstance.proveDeed(accounts[0], ownerName, fileName, fileDescription, fakeHash(), {from: accounts[0]});
+		}).then()
+		{
+			assert(blockNumber == checkBlockNumber, "Block numbers should be equal. Currently " + blockNumber + " | " + checkBlockNumber);
+		}
+  });
 
 });
