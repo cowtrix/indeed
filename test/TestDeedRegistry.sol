@@ -11,6 +11,7 @@ contract TestDeedRegistry
 	string constant fileDescription = "A hello world document.";
 
 	uint blockNumber;
+	uint secondBlockNumber;
 	
 	function fakeHash() private pure returns (uint256)
 	{
@@ -24,18 +25,24 @@ contract TestDeedRegistry
 		assert(blockNumber > 0);		
 	}
 
-	// Unfortunately there doesn't seem to be a great way to test for reverts right now
-	/*function testAddDuplicate() public 
+	function testAddDuplicate() public 
 	{
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		uint zeroBlockNumber = registry.createDeed(ownerName, fileName,	fileDescription, fakeHash());
-		assert(zeroBlockNumber == 0);		
-	}*/
+		secondBlockNumber = registry.createDeed(ownerName, fileName, fileDescription, fakeHash());
+		assert(secondBlockNumber > blockNumber);
+	}
 	
-	function testCheckDeedExists() public
+	function proveFirstDeedExists() public
 	{
 		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
-		uint proveBlockNumber = registry.proveDeed(this, ownerName, fileName, fileDescription, fakeHash());
+		uint proveBlockNumber = registry.proveDeed(this, ownerName, fileName, fileDescription, fakeHash(), 0);
 		assert(proveBlockNumber > 0 && proveBlockNumber == blockNumber);
+	}
+
+	function proveSecondDeedExists() public
+	{
+		DeedRegistry registry = DeedRegistry(DeployedAddresses.DeedRegistry());
+		uint proveBlockNumber = registry.proveDeed(this, ownerName, fileName, fileDescription, fakeHash(), secondBlockNumber);
+		assert(proveBlockNumber > 0 && proveBlockNumber == secondBlockNumber);
 	}
 }
